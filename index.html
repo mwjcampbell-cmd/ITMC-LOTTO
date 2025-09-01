@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>ITMC LOTTO ROSTER</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#111111"/>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background: #111;
+      color: #eee;
+      padding: 30px;
+    }
+    h1 {
+      color: #ffd700;
+      margin-bottom: 40px;
+    }
+    .roster {
+      font-size: 1.2em;
+      margin-top: 20px;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .current {
+      font-size: 1.6em;
+      font-weight: bold;
+      color: #00ffcc;
+      margin-bottom: 25px;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+    li {
+      margin: 6px 0;
+    }
+    .highlight {
+      color: #00ffcc;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>ITMC LOTTO ROSTER</h1>
+  <div id="current" class="current"></div>
+  <div class="roster">
+    <h2>Current Rotation</h2>
+    <ul id="rosterList"></ul>
+  </div>
+
+  <script>
+    const roster = [
+      "Booboo",
+      "Slick",
+      "James",
+      "Biff",
+      "Bones",
+      "Godmother",
+      "Cab",
+      "Whasu",
+      "Fingers",
+      "Pinocchio Shit Talk",
+      "Mr Bumbum",
+      "Zippy",
+      "Yogi",
+      "Ropehead",
+      "Bert",
+      "2Sor",
+      "Pete",
+      "Goose"
+    ];
+
+    // Reference start date: a known Saturday 7PM NZ time
+    const startDate = new Date("2025-08-23T19:00:00+12:00");
+    const msPerWeek = 7 * 24 * 60 * 60 * 1000;
+
+    function getCurrentIndex() {
+      const now = new Date();
+      const diff = now - startDate;
+      return (Math.floor(diff / msPerWeek) % roster.length + roster.length) % roster.length;
+    }
+
+    function formatDate(d) {
+      return d.toLocaleDateString("en-NZ", {
+        weekday: "short",
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+        timeZone: "Pacific/Auckland"
+      });
+    }
+
+    function renderRoster() {
+      const currentIndex = getCurrentIndex();
+      document.getElementById("current").textContent =
+        "This week's roster: " + roster[currentIndex];
+
+      const listElement = document.getElementById("rosterList");
+      listElement.innerHTML = "";
+
+      // Show exactly one full cycle (18 weeks)
+      for (let i = 0; i < roster.length; i++) {
+        const li = document.createElement("li");
+        const person = roster[(currentIndex + i) % roster.length];
+        const periodEnd = new Date(startDate.getTime() + (Math.floor((new Date() - startDate) / msPerWeek) + i + 1) * msPerWeek);
+
+        li.textContent = `${person} — ${formatDate(periodEnd)}`;
+        if (i === 0) li.classList.add("highlight");
+        listElement.appendChild(li);
+      }
+    }
+
+    renderRoster();
+
+    // Auto-refresh every minute so it updates when the week changes
+    setInterval(renderRoster, 60 * 1000);
+
+    // Register service worker
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('service-worker.js')
+          .then(reg => console.log('Service worker registered.', reg))
+          .catch(err => console.log('Service worker not registered.', err));
+      });
+    }
+  </script>
+</body>
+</html>
